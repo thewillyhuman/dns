@@ -24,7 +24,15 @@ Measured on a MacBook Pro (M-series, 4 tokio worker threads):
 | Authoritative only | 64 tasks | ~95,000 | 155 us | 311 us |
 | Mixed (20% auth, 70% cache, 10% miss) | 64 tasks | ~104,000 | 617 us | 1.0 ms |
 
-Micro-benchmarks: authoritative lookup ~5 us, cache get ~371 ns, message parse ~151 ns.
+Micro-benchmarks: authoritative lookup ~4.3 us, cache get ~371 ns, message parse ~151 ns.
+
+Scaling (lookup time stays constant regardless of zone size thanks to O(1) HashMap lookups):
+
+| Zone records | Exact hit | NXDOMAIN |
+|---|---|---|
+| 100 | 4.2 us | 4.8 us |
+| 100,000 | 4.3 us | 4.8 us |
+| 1,000,000 | 4.3 us | 4.8 us |
 
 ## Quick start
 
