@@ -1,5 +1,5 @@
 use hickory_proto::rr::{Name, RData, Record, RecordType};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 /// A DNS zone containing all records organized by owner name and record type.
 #[derive(Debug, Clone)]
@@ -9,12 +9,12 @@ pub struct Zone {
     /// SOA record for this zone.
     pub soa: Record,
     /// All records indexed by owner name, then by record type.
-    pub records: BTreeMap<Name, HashMap<RecordType, Vec<Record>>>,
+    pub records: HashMap<Name, HashMap<RecordType, Vec<Record>>>,
 }
 
 impl Zone {
     pub fn new(origin: Name, soa: Record) -> Self {
-        let mut records = BTreeMap::new();
+        let mut records = HashMap::new();
         records
             .entry(origin.clone())
             .or_insert_with(HashMap::new)

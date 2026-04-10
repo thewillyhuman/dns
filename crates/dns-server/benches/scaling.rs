@@ -1,5 +1,12 @@
 //! Scaling benchmarks — measure how performance varies with zone size,
-//! zone count, and cache population.
+//! zone count, cache population, and reload cost.
+//!
+//! Zone size axis:  100, 100_000, 1_000_000 records (single zone)
+//! Zone count axis: 1, 1_000, 10_000, 100_000 zones  (20 records each)
+//! Cache axis:      100, 100_000, 1_000_000 entries
+//!
+//! WARNING: the largest cases (1M records, 100k zones) allocate significant
+//! memory and take a while to set up. Total run time is ~15-20 minutes.
 
 use criterion::{black_box, criterion_group, criterion_main, BenchmarkId, Criterion};
 use dns_authority::loader::parse_zone_str;
@@ -14,6 +21,7 @@ use std::collections::HashMap;
 use std::net::{Ipv4Addr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 
 // ─── helpers ────────────────────────────────────────────────────────
 
@@ -43,15 +51,22 @@ fn generate_zone(origin: &str, record_count: usize) -> String {
          ns1 IN  A   10.0.0.2\n"
     );
     for i in 0..record_count {
-        let octet3 = (i / 256) % 256;
-        let octet4 = i % 256;
-        zone.push_str(&format!("host{i} IN  A   10.1.{octet3}.{octet4}\n"));
+        let b2 = (i / 65536) % 256;
+        let b3 = (i / 256) % 256;
+        let b4 = i % 256;
+        zone.push_str(&format!("host{i} IN  A   10.{b2}.{b3}.{b4}\n"));
     }
     zone
 }
 
 fn make_record(name: &str, ip: Ipv4Addr) -> Record {
     Record::from_rdata(Name::from_ascii(name).unwrap(), 300, RData::A(ip.into()))
+}
+
+fn make_router(zones: HashMap<Name, dns_authority::zone::Zone>) -> Arc<Router> {
+    let store = Arc::new(ZoneStore::new(zones));
+    let acl = AclEngine::new(HashMap::new(), "any", "any");
+    Arc::new(Router::new(store, None, acl))
 }
 
 const SRC: &str = "127.0.0.1:12345";
@@ -63,14 +78,18 @@ fn bench_lookup_by_zone_size(c: &mut Criterion) {
     let src: SocketAddr = SRC.parse().unwrap();
 
     let mut group = c.benchmark_group("lookup_by_zone_size");
-    for &record_count in &[10, 100, 1_000, 10_000] {
+    // Give large cases enough time
+    group.warm_up_time(Duration::from_secs(2));
+    group.measurement_time(Duration::from_secs(5));
+
+    for &record_count in &[100, 100_000, 1_000_000] {
+        eprintln!("  [setup] generating zone with {record_count} records...");
         let zone_str = generate_zone("scale.example.com.", record_count);
         let zone = parse_zone_str(&zone_str, &PathBuf::from("scale.example.com.zone")).unwrap();
         let mut zones = HashMap::new();
         zones.insert(zone.origin.clone(), zone);
-        let store = Arc::new(ZoneStore::new(zones));
-        let acl = AclEngine::new(HashMap::new(), "any", "any");
-        let router = Arc::new(Router::new(store, None, acl));
+        let router = make_router(zones);
+        drop(zone_str); // free the string memory
 
         // Query an existing record (roughly in the middle)
         let target = format!("host{}.scale.example.com.", record_count / 2);
@@ -89,7 +108,7 @@ fn bench_lookup_by_zone_size(c: &mut Criterion) {
             },
         );
 
-        // Query a name that doesn't exist (NXDOMAIN) — exercises full scan
+        // Query a name that doesn't exist (NXDOMAIN)
         let nxraw = build_query_wire("nonexistent.scale.example.com.");
         group.bench_with_input(
             BenchmarkId::new("nxdomain", record_count),
@@ -114,7 +133,11 @@ fn bench_lookup_by_zone_count(c: &mut Criterion) {
     let src: SocketAddr = SRC.parse().unwrap();
 
     let mut group = c.benchmark_group("lookup_by_zone_count");
-    for &zone_count in &[1, 10, 100, 1_000, 10_000] {
+    group.warm_up_time(Duration::from_secs(2));
+    group.measurement_time(Duration::from_secs(5));
+
+    for &zone_count in &[1, 1_000, 10_000, 100_000] {
+        eprintln!("  [setup] generating {zone_count} zones (20 records each)...");
         let mut zones = HashMap::new();
         for i in 0..zone_count {
             let origin = format!("zone{i}.example.com.");
@@ -122,11 +145,9 @@ fn bench_lookup_by_zone_count(c: &mut Criterion) {
             let zone = parse_zone_str(&zone_str, &PathBuf::from(format!("{origin}zone"))).unwrap();
             zones.insert(zone.origin.clone(), zone);
         }
-        let store = Arc::new(ZoneStore::new(zones));
-        let acl = AclEngine::new(HashMap::new(), "any", "any");
-        let router = Arc::new(Router::new(store, None, acl));
+        let router = make_router(zones);
 
-        // Query a record in the last zone (worst-case zone lookup)
+        // Query a record in the last zone
         let target = format!("host10.zone{}.example.com.", zone_count - 1);
         let raw = build_query_wire(&target);
 
@@ -165,10 +186,13 @@ fn bench_lookup_by_zone_count(c: &mut Criterion) {
 
 fn bench_cache_get_by_population(c: &mut Criterion) {
     let mut group = c.benchmark_group("cache_get_by_population");
-    for &pop in &[100, 1_000, 10_000, 100_000, 500_000] {
+    group.warm_up_time(Duration::from_secs(2));
+    group.measurement_time(Duration::from_secs(5));
+
+    for &pop in &[100, 100_000, 1_000_000] {
+        eprintln!("  [setup] populating cache with {pop} entries...");
         let cache = DnsCache::new(pop as u64 + 1000, 30, 86400, 300);
 
-        // Fill the cache
         for i in 0..pop {
             let name_str = format!("host{i}.cached.example.com.");
             let name = Name::from_ascii(&name_str).unwrap();
@@ -176,7 +200,7 @@ fn bench_cache_get_by_population(c: &mut Criterion) {
             cache.insert(&name, RecordType::A, vec![record], 300);
         }
 
-        // Benchmark a hit (query a name that exists)
+        // Benchmark a hit
         let hit_name = Name::from_ascii(format!("host{}.cached.example.com.", pop / 2)).unwrap();
         group.bench_with_input(BenchmarkId::new("hit", pop), &pop, |b, _| {
             b.iter(|| {
@@ -199,10 +223,13 @@ fn bench_cache_get_by_population(c: &mut Criterion) {
 
 fn bench_cache_insert_by_population(c: &mut Criterion) {
     let mut group = c.benchmark_group("cache_insert_by_population");
-    for &pop in &[100, 1_000, 10_000, 100_000, 500_000] {
-        let cache = DnsCache::new(pop as u64 + 1000, 30, 86400, 300);
+    group.warm_up_time(Duration::from_secs(2));
+    group.measurement_time(Duration::from_secs(5));
 
-        // Pre-fill
+    for &pop in &[100, 100_000, 1_000_000] {
+        eprintln!("  [setup] pre-filling cache to {pop} entries...");
+        let cache = DnsCache::new(pop as u64 * 2, 30, 86400, 300);
+
         for i in 0..pop {
             let name_str = format!("host{i}.fill.example.com.");
             let name = Name::from_ascii(&name_str).unwrap();
@@ -224,14 +251,18 @@ fn bench_cache_insert_by_population(c: &mut Criterion) {
     group.finish();
 }
 
-// ─── reload benchmarks ──────────────────────────────────────────────
+// ─── reload benchmarks: zone size ───────────────────────────────────
 
 fn bench_reload_by_zone_size(c: &mut Criterion) {
     let mut group = c.benchmark_group("reload_by_zone_size");
-    for &record_count in &[10, 100, 1_000, 10_000] {
+    group.warm_up_time(Duration::from_secs(1));
+    // Large zones need more time
+    group.sample_size(10);
+
+    for &record_count in &[100, 100_000, 1_000_000] {
+        eprintln!("  [setup] generating zone string with {record_count} records...");
         let zone_str = generate_zone("reload.example.com.", record_count);
 
-        // Measure building a new ZoneStore from parsed zone data
         group.bench_with_input(
             BenchmarkId::new("parse_and_build", record_count),
             &record_count,
@@ -253,10 +284,15 @@ fn bench_reload_by_zone_size(c: &mut Criterion) {
     group.finish();
 }
 
+// ─── reload benchmarks: zone count ──────────────────────────────────
+
 fn bench_reload_by_zone_count(c: &mut Criterion) {
     let mut group = c.benchmark_group("reload_by_zone_count");
-    for &zone_count in &[1, 10, 100, 1_000] {
-        // Pre-generate all zone strings
+    group.warm_up_time(Duration::from_secs(1));
+    group.sample_size(10);
+
+    for &zone_count in &[1, 1_000, 10_000, 100_000] {
+        eprintln!("  [setup] generating {zone_count} zone strings...");
         let zone_strings: Vec<(String, String)> = (0..zone_count)
             .map(|i| {
                 let origin = format!("zone{i}.reload.example.com.");
@@ -288,10 +324,15 @@ fn bench_reload_by_zone_count(c: &mut Criterion) {
     group.finish();
 }
 
-fn bench_reload_swap_with_zones(c: &mut Criterion) {
+// ─── reload benchmarks: atomic swap ─────────────────────────────────
+
+fn bench_reload_swap(c: &mut Criterion) {
     let mut group = c.benchmark_group("reload_swap");
-    for &zone_count in &[1, 100, 1_000, 10_000] {
-        // Build the initial store with zone_count zones
+    group.warm_up_time(Duration::from_secs(2));
+    group.measurement_time(Duration::from_secs(5));
+
+    for &zone_count in &[1, 1_000, 10_000, 100_000] {
+        eprintln!("  [setup] building store with {zone_count} zones for swap bench...");
         let mut zones = HashMap::new();
         for i in 0..zone_count {
             let origin = format!("zone{i}.swap.example.com.");
@@ -346,6 +387,6 @@ criterion_group!(
     bench_cache_insert_by_population,
     bench_reload_by_zone_size,
     bench_reload_by_zone_count,
-    bench_reload_swap_with_zones,
+    bench_reload_swap,
 );
 criterion_main!(benches);

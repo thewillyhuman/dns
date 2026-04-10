@@ -1,6 +1,6 @@
 use hickory_proto::dnssec::rdata::{DNSSECRData, NSEC};
 use hickory_proto::rr::{Name, RData, Record, RecordType};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use tracing::debug;
 
 /// Generate NSEC records for the entire zone (RFC 4034 §4).
@@ -9,7 +9,7 @@ use tracing::debug;
 /// Each NSEC record points to the next name and lists the types present at
 /// the current name.
 pub fn generate_nsec_chain(
-    records: &BTreeMap<Name, HashMap<RecordType, Vec<Record>>>,
+    records: &HashMap<Name, HashMap<RecordType, Vec<Record>>>,
     origin: &Name,
     ttl: u32,
 ) -> Vec<Record> {
@@ -17,7 +17,9 @@ pub fn generate_nsec_chain(
         return Vec::new();
     }
 
-    let names: Vec<&Name> = records.keys().collect();
+    // Sort names into canonical order for the NSEC chain
+    let mut names: Vec<&Name> = records.keys().collect();
+    names.sort();
     let mut nsec_records = Vec::new();
 
     for (i, name) in names.iter().enumerate() {
@@ -100,8 +102,8 @@ mod tests {
     use super::*;
     use std::net::Ipv4Addr;
 
-    fn make_records() -> BTreeMap<Name, HashMap<RecordType, Vec<Record>>> {
-        let mut records = BTreeMap::new();
+    fn make_records() -> HashMap<Name, HashMap<RecordType, Vec<Record>>> {
+        let mut records = HashMap::new();
 
         let names = ["a.example.com.", "b.example.com.", "d.example.com."];
         for name_str in &names {

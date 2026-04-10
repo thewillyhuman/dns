@@ -6,7 +6,7 @@ use dns_dnssec::signer::sign_zone;
 use dns_dnssec::verifier::{extract_rrsigs, validate_rrset, ValidationResult};
 use hickory_proto::dnssec::Algorithm;
 use hickory_proto::rr::{Name, RData, Record, RecordType};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::net::Ipv4Addr;
 use std::time::Duration;
 
@@ -152,7 +152,7 @@ fn test_tampered_record_fails_validation() {
 fn test_nsec_chain_generation() {
     let origin = Name::from_ascii("example.com.").unwrap();
 
-    let mut records = BTreeMap::new();
+    let mut records = HashMap::new();
     let names = [
         "alpha.example.com.",
         "bravo.example.com.",
