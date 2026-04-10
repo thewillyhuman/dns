@@ -1,6 +1,6 @@
-# CERN DNS Server
+# DNS
 
-A high-performance DNS server written in Rust, designed to serve as both an **authoritative nameserver** and a **recursive resolver**. Built for CERN's infrastructure, it handles authoritative zones (cern.ch, etc.) and resolves all other queries recursively.
+A high-performance DNS server written in Rust, designed to serve as both an **authoritative nameserver** and a **recursive resolver**.
 
 ## Features
 
@@ -33,10 +33,10 @@ Micro-benchmarks: authoritative lookup ~5 us, cache get ~371 ns, message parse ~
 cargo build --release
 
 # Run with example config
-./target/release/cern-dns --config config/config.toml
+./target/release/dns --config config/config.toml
 
 # Query it
-dig @127.0.0.1 -p 5353 example.cern.ch A
+dig @127.0.0.1 -p 5353 example.com A
 ```
 
 ## Documentation

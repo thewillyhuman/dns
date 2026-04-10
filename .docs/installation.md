@@ -15,7 +15,7 @@ cd dns
 cargo build --release
 ```
 
-The binary is at `target/release/cern-dns`.
+The binary is at `target/release/dns`.
 
 ## Cross-compilation (static binary)
 
@@ -32,10 +32,10 @@ The resulting binary has no runtime dependencies beyond the kernel.
 
 ```bash
 # Check the binary runs
-./target/release/cern-dns --help
+./target/release/dns --help
 
 # Validate the example config
-./target/release/cern-dns --check-config config/config.toml
+./target/release/dns --check-config config/config.toml
 
 # Run the test suite
 cargo test --workspace
@@ -52,10 +52,10 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
-COPY --from=builder /build/target/release/cern-dns /usr/local/bin/cern-dns
+COPY --from=builder /build/target/release/dns /usr/local/bin/dns
 COPY config/ /etc/dns/
 EXPOSE 53/udp 53/tcp 853/tcp 443/tcp 9153/tcp
-ENTRYPOINT ["cern-dns", "--config", "/etc/dns/config.toml"]
+ENTRYPOINT ["dns", "--config", "/etc/dns/config.toml"]
 ```
 
 For a static musl build, replace the builder target and use `FROM scratch` as the runtime image.

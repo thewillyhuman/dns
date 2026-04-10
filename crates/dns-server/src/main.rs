@@ -16,7 +16,7 @@ use tokio_util::sync::CancellationToken;
 use tracing::{error, info};
 
 #[derive(Parser)]
-#[command(name = "cern-dns", version, about = "CERN DNS Server")]
+#[command(name = "dns", version, about = "A high-performance DNS server")]
 struct Cli {
     /// Path to the configuration file
     #[arg(long, default_value = "/etc/dns/config.toml")]
@@ -98,7 +98,7 @@ async fn main() {
     // Initialize logging
     init_logging(&config.logging);
 
-    info!("starting cern-dns server");
+    info!("starting dns server");
 
     // Load zones
     info!(dir = %config.zones.directory.display(), "loading zones");

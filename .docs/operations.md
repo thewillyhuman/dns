@@ -3,7 +3,7 @@
 ## Running the server
 
 ```bash
-cern-dns --config /etc/dns/config.toml
+dns --config /etc/dns/config.toml
 ```
 
 The server loads all zone files, starts listeners, and begins accepting queries. It does not respond to DNS queries until zone loading is complete (the `/health/ready` endpoint returns 503 during startup).
@@ -39,7 +39,7 @@ Required only if `listen_dot` or `listen_doh` are configured.
 | `directory` | string | `"config/zones"` | Directory containing RFC 1035 zone files |
 | `watch` | bool | `false` | Enable inotify-based auto-reload |
 
-Zone files must be named `<zone-name>.zone` (e.g., `cern.ch.zone`). They follow standard RFC 1035 format with `$ORIGIN` and `$TTL` directives.
+Zone files must be named `<zone-name>.zone` (e.g., `example.com.zone`). They follow standard RFC 1035 format with `$ORIGIN` and `$TTL` directives.
 
 ### `[recursion]`
 
@@ -131,7 +131,7 @@ www IN  A   192.0.2.100
 curl -X POST http://127.0.0.1:9153/api/v1/reload
 
 # Via signal
-kill -HUP $(pidof cern-dns)
+kill -HUP $(pidof dns)
 ```
 
 ### Reloading zones
@@ -192,13 +192,13 @@ Example unit file:
 
 ```ini
 [Unit]
-Description=CERN DNS Server
+Description=DNS Server
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/cern-dns --config /etc/dns/config.toml
+ExecStart=/usr/local/bin/dns --config /etc/dns/config.toml
 Restart=on-failure
 RestartSec=5
 
@@ -218,7 +218,7 @@ WantedBy=multi-user.target
 To bind to privileged ports (53, 443, 853) without running as root, grant the `CAP_NET_BIND_SERVICE` capability:
 
 ```bash
-sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/cern-dns
+sudo setcap 'cap_net_bind_service=+ep' /usr/local/bin/dns
 ```
 
 Or use the `AmbientCapabilities` directive in systemd (shown above).
@@ -232,8 +232,8 @@ Each instance is fully independent. Zone consistency is achieved by pushing iden
 ### Server won't start
 
 - **Port in use** -- another process is bound to the configured port. Check with `ss -tlnp | grep :53`.
-- **Zone parse error** -- check logs for parse errors. Validate zone files with: `cern-dns --check-zone config/zones/example.com.zone`
-- **Config error** -- validate config with: `cern-dns --check-config config/config.toml`
+- **Zone parse error** -- check logs for parse errors. Validate zone files with: `dns --check-zone config/zones/example.com.zone`
+- **Config error** -- validate config with: `dns --check-config config/config.toml`
 
 ### High latency on recursive queries
 
