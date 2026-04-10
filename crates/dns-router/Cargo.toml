@@ -1,0 +1,16 @@
+[package]
+name = "dns-router"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+dns-protocol = { path = "../dns-protocol" }
+dns-authority = { path = "../dns-authority" }
+dns-resolver = { path = "../dns-resolver" }
+dns-transport = { path = "../dns-transport" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+hickory-proto = { workspace = true }
+ipnet = { workspace = true }
+dashmap = { workspace = true }
+tokio = { workspace = true }

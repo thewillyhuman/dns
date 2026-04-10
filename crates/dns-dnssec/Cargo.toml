@@ -1,0 +1,18 @@
+[package]
+name = "dns-dnssec"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+dns-protocol = { path = "../dns-protocol" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+hickory-proto = { workspace = true }
+ring = { workspace = true }
+base64 = { workspace = true }
+rand = { workspace = true }
+time = "0.3"
+rustls-pki-types = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

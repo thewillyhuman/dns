@@ -1,0 +1,73 @@
+[workspace]
+members = [
+    "crates/dns-config",
+    "crates/dns-protocol",
+    "crates/dns-authority",
+    "crates/dns-resolver",
+    "crates/dns-dnssec",
+    "crates/dns-transport",
+    "crates/dns-router",
+    "crates/dns-api",
+    "crates/dns-server",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[workspace.dependencies]
+# DNS
+hickory-proto = { version = "0.25", features = ["text-parsing", "dnssec-ring"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["rt"] }
+
+# HTTP
+axum = "0.8"
+hyper = { version = "1", features = ["full"] }
+
+# TLS
+rustls = "0.23"
+tokio-rustls = "0.26"
+rustls-pemfile = "2"
+
+# Serialization
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+toml = "0.8"
+
+# Error handling
+thiserror = "2"
+anyhow = "1"
+
+# Logging / Tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+
+# Metrics
+prometheus-client = "0.23"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Concurrency
+arc-swap = "1"
+moka = { version = "0.12", features = ["future", "sync"] }
+dashmap = "6"
+parking_lot = "0.12"
+
+# Networking
+ipnet = { version = "2", features = ["serde"] }
+bytes = "1"
+
+# Crypto (DNSSEC)
+ring = "0.17"
+
+# Utilities
+base64 = "0.22"
+rand = "0.8"
+rustls-pki-types = "1"
+criterion = { version = "0.5", features = ["html_reports"] }

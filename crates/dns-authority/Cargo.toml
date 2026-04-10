@@ -1,0 +1,11 @@
+[package]
+name = "dns-authority"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+dns-protocol = { path = "../dns-protocol" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+arc-swap = { workspace = true }
+hickory-proto = { workspace = true }

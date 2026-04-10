@@ -1,0 +1,53 @@
+[package]
+name = "dns-server"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "cern-dns"
+path = "src/main.rs"
+
+[dependencies]
+dns-config = { path = "../dns-config" }
+dns-protocol = { path = "../dns-protocol" }
+dns-authority = { path = "../dns-authority" }
+dns-resolver = { path = "../dns-resolver" }
+dns-dnssec = { path = "../dns-dnssec" }
+dns-transport = { path = "../dns-transport" }
+dns-router = { path = "../dns-router" }
+dns-api = { path = "../dns-api" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+tokio = { workspace = true }
+tokio-util = { workspace = true }
+clap = { workspace = true }
+anyhow = { workspace = true }
+axum = { workspace = true }
+ipnet = { workspace = true }
+
+[dev-dependencies]
+criterion = { workspace = true }
+hickory-proto = { workspace = true }
+parking_lot = { workspace = true }
+rand = { workspace = true }
+
+[[bench]]
+name = "lookup"
+harness = false
+
+[[bench]]
+name = "cache"
+harness = false
+
+[[bench]]
+name = "parsing"
+harness = false
+
+[[bench]]
+name = "throughput"
+harness = false
+
+[[bench]]
+name = "throughput_mixed"
+harness = false

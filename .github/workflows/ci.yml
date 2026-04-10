@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  check:
+    name: Check & Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo check --workspace --all-targets
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace
+
+  bench:
+    name: Benchmarks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      # Run criterion benchmarks and save output
+      - name: Run criterion benchmarks
+        run: cargo bench -p dns-server --bench parsing --bench lookup --bench cache -- --output-format bencher | tee bench-output.txt
+
+      # Run throughput benchmarks (custom harness, non-criterion)
+      - name: Run throughput benchmarks
+        run: |
+          cargo bench -p dns-server --bench throughput 2>&1 | tee -a bench-output.txt
+          cargo bench -p dns-server --bench throughput_mixed 2>&1 | tee -a bench-output.txt
+
+      # Compare against the stored baseline on the main branch
+      - name: Continuous benchmark
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: DNS Server Benchmarks
+          tool: cargo
+          output-file-path: bench-output.txt
+          # Store benchmark data in gh-pages branch
+          gh-pages-branch: gh-pages
+          benchmark-data-dir-path: dev/bench
+          # Post a comment on the PR with comparison
+          comment-on-alert: true
+          alert-comment-cc-users: "@${{ github.repository_owner }}"
+          # Fail the PR if performance regresses by more than 20%
+          alert-threshold: "120%"
+          fail-on-alert: true
+          # Only push updated data when merging to main
+          auto-push: false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: bench-output.txt
+          retention-days: 90
+
+  # Update the stored baseline when changes land on main
+  bench-baseline:
+    name: Update benchmark baseline
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Run criterion benchmarks
+        run: cargo bench -p dns-server --bench parsing --bench lookup --bench cache -- --output-format bencher | tee bench-output.txt
+
+      - name: Store benchmark baseline
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: DNS Server Benchmarks
+          tool: cargo
+          output-file-path: bench-output.txt
+          gh-pages-branch: gh-pages
+          benchmark-data-dir-path: dev/bench
+          auto-push: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}

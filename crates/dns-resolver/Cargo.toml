@@ -1,0 +1,15 @@
+[package]
+name = "dns-resolver"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+dns-protocol = { path = "../dns-protocol" }
+dns-config = { path = "../dns-config" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+moka = { workspace = true }
+dashmap = { workspace = true }
+hickory-proto = { workspace = true }
+rand = { workspace = true }

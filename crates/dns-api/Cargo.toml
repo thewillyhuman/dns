@@ -1,0 +1,18 @@
+[package]
+name = "dns-api"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+dns-authority = { path = "../dns-authority" }
+dns-resolver = { path = "../dns-resolver" }
+dns-config = { path = "../dns-config" }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { workspace = true }
+axum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+prometheus-client = { workspace = true }
+parking_lot = { workspace = true }
+hickory-proto = { workspace = true }

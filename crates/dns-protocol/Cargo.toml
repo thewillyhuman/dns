@@ -1,0 +1,10 @@
+[package]
+name = "dns-protocol"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+hickory-proto = { workspace = true }
+thiserror = { workspace = true }
+bytes = { workspace = true }
+tracing = { workspace = true }

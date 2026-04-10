@@ -1,0 +1,41 @@
+[server]
+listen_udp = ["0.0.0.0:5353", "[::]:5353"]
+listen_tcp = ["0.0.0.0:5353", "[::]:5353"]
+listen_http = "127.0.0.1:9153"
+workers = 0
+
+[zones]
+directory = "config/zones"
+watch = false
+
+[recursion]
+enabled = true
+max_depth = 30
+timeout = "2s"
+retries = 2
+qname_minimization = true
+
+[cache]
+max_entries = 1000000
+max_ttl = 86400
+min_ttl = 30
+negative_ttl = 300
+
+[dnssec]
+enable_signing = false
+enable_validation = false
+
+[rrl]
+enabled = false
+responses_per_second = 5
+slip = 2
+ipv4_prefix_length = 24
+ipv6_prefix_length = 48
+
+[logging]
+level = "info"
+format = "json"
+
+[policy]
+allow_recursion = "any"
+allow_query = "any"
