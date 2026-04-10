@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775823993597,
+  "lastUpdate": 1775825309345,
   "repoUrl": "https://github.com/thewillyhuman/dns",
   "entries": {
     "DNS Server Benchmarks": [
@@ -76,6 +76,84 @@ window.BENCHMARK_DATA = {
           {
             "name": "dns_name_parse",
             "value": 262,
+            "range": "± 1",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "guillermo.facundo.colunga@cern.ch",
+            "name": "Guillermo Facundo Colunga",
+            "username": "thewillyhuman"
+          },
+          "committer": {
+            "email": "guillermo.facundo.colunga@cern.ch",
+            "name": "Guillermo Facundo Colunga",
+            "username": "thewillyhuman"
+          },
+          "distinct": true,
+          "id": "fa48af24db1918735402b887b5148491f802c58d",
+          "message": "Rename binary from cern-dns to dns and remove CERN branding\n\n- Binary is now `dns` instead of `cern-dns`\n- README title changed to \"DNS\"\n- Updated all docs (installation, operations) to reference `dns` binary\n- Example zone data and test fixtures left unchanged\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+          "timestamp": "2026-04-10T14:46:05+02:00",
+          "tree_id": "a05dcb8712fcbbb0458034782004e16dee38e92c",
+          "url": "https://github.com/thewillyhuman/dns/commit/fa48af24db1918735402b887b5148491f802c58d"
+        },
+        "date": 1775825308940,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cache_insert",
+            "value": 1761,
+            "range": "± 95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_hit",
+            "value": 491,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_miss",
+            "value": 245,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "authoritative_a_lookup",
+            "value": 5891,
+            "range": "± 54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "nxdomain_lookup",
+            "value": 6060,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "wildcard_lookup",
+            "value": 9883,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dns_message_parse",
+            "value": 182,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dns_message_serialize",
+            "value": 244,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dns_name_parse",
+            "value": 211,
             "range": "± 1",
             "unit": "ns/iter"
           }
