@@ -82,7 +82,7 @@ impl RrlEngine {
             // Rate limited — decide between drop and truncate
             if self.slip > 0 {
                 let counter = self.slip_counter.fetch_add(1, Ordering::Relaxed);
-                if counter % self.slip as u64 == 0 {
+                if counter.is_multiple_of(self.slip as u64) {
                     debug!(src = %src, "RRL: truncating response (slip)");
                     return RrlAction::Truncate;
                 }

@@ -21,10 +21,7 @@ impl ZoneStore {
     /// Create a new zone store from a map of zones.
     pub fn new(zones: HashMap<Name, Zone>) -> Self {
         let inner = ZoneStoreInner {
-            zones: zones
-                .into_iter()
-                .map(|(k, v)| (k, Arc::new(v)))
-                .collect(),
+            zones: zones.into_iter().map(|(k, v)| (k, Arc::new(v))).collect(),
         };
         Self {
             inner: ArcSwap::new(Arc::new(inner)),
@@ -74,10 +71,7 @@ impl ZoneStore {
         let zones = loader::load_zone_directory(dir)?;
         let count = zones.len();
         let inner = ZoneStoreInner {
-            zones: zones
-                .into_iter()
-                .map(|(k, v)| (k, Arc::new(v)))
-                .collect(),
+            zones: zones.into_iter().map(|(k, v)| (k, Arc::new(v))).collect(),
         };
         self.inner.store(Arc::new(inner));
         Ok(ReloadResult {
@@ -93,7 +87,8 @@ impl ZoneStore {
         let guard = self.inner.load();
         let mut new_zones = guard.zones.clone();
         new_zones.insert(origin, Arc::new(zone));
-        self.inner.store(Arc::new(ZoneStoreInner { zones: new_zones }));
+        self.inner
+            .store(Arc::new(ZoneStoreInner { zones: new_zones }));
         Ok(())
     }
 

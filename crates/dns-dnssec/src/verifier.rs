@@ -78,10 +78,7 @@ pub fn validate_rrset(
         }
     }
 
-    let reason = format!(
-        "no valid RRSIG found for ({}, {:?})",
-        name, rtype
-    );
+    let reason = format!("no valid RRSIG found for ({}, {:?})", name, rtype);
     warn!(name = %name, rtype = ?rtype, "DNSSEC validation failed");
     ValidationResult::Bogus(reason)
 }
@@ -119,11 +116,7 @@ mod tests {
     use std::time::Duration;
 
     fn make_a_record(name: &str, ip: Ipv4Addr) -> Record {
-        Record::from_rdata(
-            Name::from_ascii(name).unwrap(),
-            300,
-            RData::A(ip.into()),
-        )
+        Record::from_rdata(Name::from_ascii(name).unwrap(), 300, RData::A(ip.into()))
     }
 
     #[test]
@@ -163,7 +156,7 @@ mod tests {
             RecordType::A,
             &[a_record],
             &rrsig_records,
-            &[zsk.dnskey.clone()],
+            std::slice::from_ref(&zsk.dnskey),
         );
         assert_eq!(result, ValidationResult::Secure);
     }

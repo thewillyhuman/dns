@@ -76,7 +76,10 @@ async fn test_rrl_drops_over_limit() {
 
     // Next should be dropped (None)
     let resp = router.handle_query(&raw, src).await;
-    assert!(resp.is_none(), "response should be dropped after exceeding RRL");
+    assert!(
+        resp.is_none(),
+        "response should be dropped after exceeding RRL"
+    );
 }
 
 #[tokio::test]
@@ -94,5 +97,8 @@ async fn test_rrl_different_ips_independent() {
 
     // src2 should still work (different prefix)
     let resp = router.handle_query(&raw, src2).await;
-    assert!(resp.is_some(), "different /24 should have independent bucket");
+    assert!(
+        resp.is_some(),
+        "different /24 should have independent bucket"
+    );
 }

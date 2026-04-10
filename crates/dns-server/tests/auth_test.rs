@@ -111,9 +111,12 @@ async fn test_cname_query() {
 
     assert!(msg.authoritative());
     // Should get CNAME + resolved A record (CNAME chasing)
-    assert!(msg.answers().len() >= 1);
+    assert!(!msg.answers().is_empty());
 
-    let has_cname = msg.answers().iter().any(|r| r.record_type() == RecordType::CNAME);
+    let has_cname = msg
+        .answers()
+        .iter()
+        .any(|r| r.record_type() == RecordType::CNAME);
     assert!(has_cname, "response should include CNAME record");
 }
 

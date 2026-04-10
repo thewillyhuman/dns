@@ -5,7 +5,10 @@ pub type RRset = Vec<Record>;
 
 /// Filter records by type.
 pub fn rrset_for_type(records: &[Record], rtype: RecordType) -> Vec<&Record> {
-    records.iter().filter(|r| r.record_type() == rtype).collect()
+    records
+        .iter()
+        .filter(|r| r.record_type() == rtype)
+        .collect()
 }
 
 /// Get the minimum TTL from a set of records.
@@ -22,8 +25,11 @@ mod tests {
     #[test]
     fn test_rrset_for_type() {
         let name = Name::from_ascii("example.com.").unwrap();
-        let a_record =
-            Record::from_rdata(name.clone(), 300, RData::A(Ipv4Addr::new(1, 2, 3, 4).into()));
+        let a_record = Record::from_rdata(
+            name.clone(),
+            300,
+            RData::A(Ipv4Addr::new(1, 2, 3, 4).into()),
+        );
         let aaaa_record = Record::update0(name.clone(), 300, RecordType::AAAA);
 
         let records = vec![a_record, aaaa_record];

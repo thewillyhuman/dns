@@ -39,15 +39,14 @@ pub fn parse_zone_str(content: &str, path: &Path) -> Result<Zone, ZoneLoadError>
             .file_stem()
             .and_then(|s| s.to_str())
             .unwrap_or("unknown");
-        Name::from_ascii(&format!("{}.", stem)).unwrap_or_else(|_| Name::root())
+        Name::from_ascii(format!("{}.", stem)).unwrap_or_else(|_| Name::root())
     });
 
     let parser = Parser::new(content.to_string(), None, Some(origin.clone()));
-    let (final_origin, record_sets) =
-        parser.parse().map_err(|e| ZoneLoadError::Parse {
-            path: path.display().to_string(),
-            reason: e.to_string(),
-        })?;
+    let (final_origin, record_sets) = parser.parse().map_err(|e| ZoneLoadError::Parse {
+        path: path.display().to_string(),
+        reason: e.to_string(),
+    })?;
 
     // Find SOA record
     let soa = record_sets

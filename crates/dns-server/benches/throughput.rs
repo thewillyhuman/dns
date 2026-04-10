@@ -127,7 +127,6 @@ async fn run_load_test(
 
     let mut handles = Vec::with_capacity(num_tasks);
     for task_id in 0..num_tasks {
-        let server_addr = server_addr;
         let latencies = Arc::clone(&latencies);
         let errors = Arc::clone(&errors);
         let packets = Arc::clone(&packets);
@@ -145,8 +144,7 @@ async fn run_load_test(
                     errors.fetch_add(1, Ordering::Relaxed);
                     continue;
                 }
-                match tokio::time::timeout(Duration::from_secs(2), sock.recv(&mut recv_buf)).await
-                {
+                match tokio::time::timeout(Duration::from_secs(2), sock.recv(&mut recv_buf)).await {
                     Ok(Ok(_len)) => {
                         latencies.record(start.elapsed().as_nanos() as u64);
                     }
@@ -195,10 +193,9 @@ fn main() {
 
         // Bind to port 0 so the OS picks a free port
         let addr: SocketAddr = "127.0.0.1:0".parse().unwrap();
-        let server_handles =
-            dns_transport::udp::run(&[addr], Arc::clone(&router), cancel.clone())
-                .await
-                .unwrap();
+        let server_handles = dns_transport::udp::run(&[addr], Arc::clone(&router), cancel.clone())
+            .await
+            .unwrap();
 
         // Discover which port the OS assigned
         // We need to read it from the socket before the task takes ownership.
@@ -225,8 +222,8 @@ fn main() {
             "app.example.com.",
             "api.example.com.",
             "cdn.example.com.",
-            "nonexistent.example.com.",     // NXDOMAIN
-            "random.wild.example.com.",     // wildcard
+            "nonexistent.example.com.", // NXDOMAIN
+            "random.wild.example.com.", // wildcard
         ];
 
         println!("========== concurrent throughput benchmark ==========");

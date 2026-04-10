@@ -87,6 +87,7 @@ pub fn sign_zone(
 }
 
 /// Sign a single RRset and produce an RRSIG record.
+#[allow(clippy::too_many_arguments)]
 fn sign_rrset(
     records: &[Record],
     name: &Name,
@@ -151,11 +152,7 @@ mod tests {
     use std::time::Duration;
 
     fn make_a_record(name: &str, ip: Ipv4Addr) -> Record {
-        Record::from_rdata(
-            Name::from_ascii(name).unwrap(),
-            300,
-            RData::A(ip.into()),
-        )
+        Record::from_rdata(Name::from_ascii(name).unwrap(), 300, RData::A(ip.into()))
     }
 
     #[test]

@@ -11,7 +11,7 @@
 
 use dns_authority::loader::parse_zone_str;
 use dns_authority::ZoneStore;
-use dns_config::config::{CacheConfig, RecursionConfig, ForwardingConfig};
+use dns_config::config::{CacheConfig, ForwardingConfig, RecursionConfig};
 use dns_resolver::Resolver;
 use dns_router::acl::AclEngine;
 use dns_router::router::Router;
@@ -79,7 +79,8 @@ async fn start_stub_upstream(
             tokio::spawn(async move {
                 // synthetic upstream latency
                 let jitter_ms = rand::thread_rng()
-                    .gen_range(delay_min.as_millis()..delay_max.as_millis()) as u64;
+                    .gen_range(delay_min.as_millis()..delay_max.as_millis())
+                    as u64;
                 tokio::time::sleep(Duration::from_millis(jitter_ms)).await;
 
                 let mut resp = Message::new();
@@ -96,7 +97,12 @@ async fn start_stub_upstream(
 
                 // Canned answer: always 93.184.216.34
                 if let Some(q) = query.queries().first() {
-                    let rdata = RData::A("93.184.216.34".parse::<std::net::Ipv4Addr>().unwrap().into());
+                    let rdata = RData::A(
+                        "93.184.216.34"
+                            .parse::<std::net::Ipv4Addr>()
+                            .unwrap()
+                            .into(),
+                    );
                     let record = Record::from_rdata(q.name().clone(), 300, rdata);
                     resp.add_answer(record);
                 }
@@ -134,9 +140,16 @@ fn build_query_mix() -> Vec<(&'static str, Vec<u8>)> {
 
     // 20% authoritative
     for name in &[
-        "www.cern.ch.", "mail.cern.ch.", "lhc.cern.ch.", "atlas.cern.ch.",
-        "cms.cern.ch.", "alice.cern.ch.", "lhcb.cern.ch.", "ns1.cern.ch.",
-        "cern.ch.", "www.cern.ch.",
+        "www.cern.ch.",
+        "mail.cern.ch.",
+        "lhc.cern.ch.",
+        "atlas.cern.ch.",
+        "cms.cern.ch.",
+        "alice.cern.ch.",
+        "lhcb.cern.ch.",
+        "ns1.cern.ch.",
+        "cern.ch.",
+        "www.cern.ch.",
     ] {
         mix.push(("auth", build_query_wire(name, RecordType::A, id)));
         id += 1;
@@ -230,7 +243,6 @@ async fn run_mixed_load(
 
     let mut handles = Vec::with_capacity(num_tasks);
     for task_id in 0..num_tasks {
-        let server_addr = server_addr;
         let buckets = Arc::clone(&buckets);
         let errors = Arc::clone(&errors);
         let mix = Arc::clone(&mix);
@@ -328,7 +340,7 @@ fn main() {
 
         // 4. Pre-warm the cache with the "cache hit" names
         for i in 0..35 {
-            let name = Name::from_ascii(&format!("cached-{i}.example.com.")).unwrap();
+            let name = Name::from_ascii(format!("cached-{i}.example.com.")).unwrap();
             let _ = resolver.resolve(&name, RecordType::A).await;
         }
         println!("cache warmed with 35 names");
@@ -340,13 +352,10 @@ fn main() {
         // 6. Start the DNS server on localhost
         let cancel = CancellationToken::new();
         let server_addr: SocketAddr = "127.0.0.1:15354".parse().unwrap();
-        let server_handles = dns_transport::udp::run(
-            &[server_addr],
-            Arc::clone(&router),
-            cancel.clone(),
-        )
-        .await
-        .unwrap();
+        let server_handles =
+            dns_transport::udp::run(&[server_addr], Arc::clone(&router), cancel.clone())
+                .await
+                .unwrap();
         tokio::time::sleep(Duration::from_millis(50)).await;
 
         // 7. Build the query mix

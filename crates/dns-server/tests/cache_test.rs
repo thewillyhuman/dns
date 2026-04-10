@@ -1,23 +1,22 @@
 //! Integration tests for the DNS cache.
 
-use dns_resolver::cache::{CacheStats, DnsCache};
+use dns_resolver::cache::DnsCache;
 use hickory_proto::op::ResponseCode;
 use hickory_proto::rr::{Name, RData, Record, RecordType};
 use std::net::Ipv4Addr;
 
 fn make_a_record(name: &str, ip: Ipv4Addr) -> Record {
-    Record::from_rdata(
-        Name::from_ascii(name).unwrap(),
-        300,
-        RData::A(ip.into()),
-    )
+    Record::from_rdata(Name::from_ascii(name).unwrap(), 300, RData::A(ip.into()))
 }
 
 #[test]
 fn test_cache_insert_and_get() {
     let cache = DnsCache::new(10000, 30, 86400, 300);
     let name = Name::from_ascii("test.example.com.").unwrap();
-    let records = vec![make_a_record("test.example.com.", Ipv4Addr::new(10, 0, 0, 1))];
+    let records = vec![make_a_record(
+        "test.example.com.",
+        Ipv4Addr::new(10, 0, 0, 1),
+    )];
 
     cache.insert(&name, RecordType::A, records.clone(), 3600);
 
@@ -99,7 +98,10 @@ fn test_cache_ttl_clamping() {
     cache.insert(
         &name,
         RecordType::A,
-        vec![make_a_record("test.example.com.", Ipv4Addr::new(1, 2, 3, 4))],
+        vec![make_a_record(
+            "test.example.com.",
+            Ipv4Addr::new(1, 2, 3, 4),
+        )],
         5,
     );
 
@@ -114,7 +116,10 @@ fn test_cache_stats() {
     cache.insert(
         &name,
         RecordType::A,
-        vec![make_a_record("test.example.com.", Ipv4Addr::new(1, 2, 3, 4))],
+        vec![make_a_record(
+            "test.example.com.",
+            Ipv4Addr::new(1, 2, 3, 4),
+        )],
         300,
     );
 
@@ -136,7 +141,10 @@ fn test_cache_different_types() {
     cache.insert(
         &name,
         RecordType::A,
-        vec![make_a_record("test.example.com.", Ipv4Addr::new(1, 2, 3, 4))],
+        vec![make_a_record(
+            "test.example.com.",
+            Ipv4Addr::new(1, 2, 3, 4),
+        )],
         300,
     );
 

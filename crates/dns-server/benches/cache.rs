@@ -4,11 +4,7 @@ use hickory_proto::rr::{Name, RData, Record, RecordType};
 use std::net::Ipv4Addr;
 
 fn make_record(name: &str, ip: Ipv4Addr) -> Record {
-    Record::from_rdata(
-        Name::from_ascii(name).unwrap(),
-        300,
-        RData::A(ip.into()),
-    )
+    Record::from_rdata(Name::from_ascii(name).unwrap(), 300, RData::A(ip.into()))
 }
 
 fn bench_cache_insert(c: &mut Criterion) {
@@ -32,7 +28,10 @@ fn bench_cache_get_hit(c: &mut Criterion) {
     cache.insert(
         &name,
         RecordType::A,
-        vec![make_record("cached.example.com.", Ipv4Addr::new(1, 2, 3, 4))],
+        vec![make_record(
+            "cached.example.com.",
+            Ipv4Addr::new(1, 2, 3, 4),
+        )],
         300,
     );
 
@@ -56,5 +55,10 @@ fn bench_cache_get_miss(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_cache_insert, bench_cache_get_hit, bench_cache_get_miss);
+criterion_group!(
+    benches,
+    bench_cache_insert,
+    bench_cache_get_hit,
+    bench_cache_get_miss
+);
 criterion_main!(benches);

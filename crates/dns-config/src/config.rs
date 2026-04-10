@@ -13,7 +13,7 @@ pub enum ConfigError {
     Parse(#[from] toml::de::Error),
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Default, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct ServerConfig {
     #[serde(default)]
@@ -170,17 +170,11 @@ pub struct PolicyConfig {
 // Default value functions
 
 fn default_listen_udp() -> Vec<SocketAddr> {
-    vec![
-        "0.0.0.0:53".parse().unwrap(),
-        "[::]:53".parse().unwrap(),
-    ]
+    vec!["0.0.0.0:53".parse().unwrap(), "[::]:53".parse().unwrap()]
 }
 
 fn default_listen_tcp() -> Vec<SocketAddr> {
-    vec![
-        "0.0.0.0:53".parse().unwrap(),
-        "[::]:53".parse().unwrap(),
-    ]
+    vec!["0.0.0.0:53".parse().unwrap(), "[::]:53".parse().unwrap()]
 }
 
 fn default_listen_http() -> SocketAddr {
@@ -368,29 +362,12 @@ impl Default for PolicyConfig {
 impl ServerConfig {
     pub fn from_file(path: &Path) -> Result<Self, ConfigError> {
         let content = std::fs::read_to_string(path)?;
-        Self::from_str(&content)
+        Self::parse_toml(&content)
     }
 
-    pub fn from_str(s: &str) -> Result<Self, ConfigError> {
+    pub fn parse_toml(s: &str) -> Result<Self, ConfigError> {
         let config: ServerConfig = toml::from_str(s)?;
         Ok(config)
-    }
-}
-
-impl Default for ServerConfig {
-    fn default() -> Self {
-        Self {
-            server: ListenConfig::default(),
-            tls: TlsConfig::default(),
-            zones: ZonesConfig::default(),
-            recursion: RecursionConfig::default(),
-            cache: CacheConfig::default(),
-            dnssec: DnssecConfig::default(),
-            rrl: RrlConfig::default(),
-            logging: LoggingConfig::default(),
-            acls: HashMap::new(),
-            policy: PolicyConfig::default(),
-        }
     }
 }
 
@@ -459,7 +436,7 @@ allow_query = "any"
 [acls]
 cern-internal = ["128.141.0.0/16", "128.142.0.0/16"]
 "#;
-        let config = ServerConfig::from_str(toml).unwrap();
+        let config = ServerConfig::parse_toml(toml).unwrap();
         assert_eq!(config.server.workers, 4);
         assert!(config.zones.watch);
         assert_eq!(config.recursion.max_depth, 20);
@@ -476,7 +453,7 @@ cern-internal = ["128.141.0.0/16", "128.142.0.0/16"]
     #[test]
     fn test_parse_minimal_config() {
         let toml = "";
-        let config = ServerConfig::from_str(toml).unwrap();
+        let config = ServerConfig::parse_toml(toml).unwrap();
         assert_eq!(config.cache.max_ttl, 86400);
         assert!(config.recursion.enabled);
     }

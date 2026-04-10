@@ -28,7 +28,7 @@ pub fn minimized_qname(qname: &Name, zone_cut: &Name) -> Name {
     }
 
     let minimized = parts[skip..].join(".");
-    Name::from_ascii(&format!("{}.", minimized)).unwrap_or_else(|_| qname.clone())
+    Name::from_ascii(format!("{}.", minimized)).unwrap_or_else(|_| qname.clone())
 }
 
 #[cfg(test)]

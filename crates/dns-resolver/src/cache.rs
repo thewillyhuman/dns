@@ -54,9 +54,7 @@ pub struct DnsCache {
 
 impl DnsCache {
     pub fn new(max_entries: u64, min_ttl: u32, max_ttl: u32, negative_ttl: u32) -> Self {
-        let cache = MokaCache::builder()
-            .max_capacity(max_entries)
-            .build();
+        let cache = MokaCache::builder().max_capacity(max_entries).build();
 
         Self {
             cache,
@@ -112,12 +110,7 @@ impl DnsCache {
     }
 
     /// Insert a negative response (NXDOMAIN or NODATA) into the cache.
-    pub fn insert_negative(
-        &self,
-        name: &Name,
-        rtype: RecordType,
-        response_code: ResponseCode,
-    ) {
+    pub fn insert_negative(&self, name: &Name, rtype: RecordType, response_code: ResponseCode) {
         let ttl = self.negative_ttl.min(self.max_ttl).max(self.min_ttl);
         let key = CacheKey {
             name: name.clone(),
@@ -183,11 +176,7 @@ mod tests {
     use std::net::Ipv4Addr;
 
     fn make_record(name: &str, ip: Ipv4Addr) -> Record {
-        Record::from_rdata(
-            Name::from_ascii(name).unwrap(),
-            300,
-            RData::A(ip.into()),
-        )
+        Record::from_rdata(Name::from_ascii(name).unwrap(), 300, RData::A(ip.into()))
     }
 
     #[test]

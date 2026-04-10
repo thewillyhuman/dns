@@ -34,8 +34,8 @@ struct Cli {
 fn init_logging(config: &dns_config::config::LoggingConfig) {
     use tracing_subscriber::EnvFilter;
 
-    let filter = EnvFilter::try_from_default_env()
-        .unwrap_or_else(|_| EnvFilter::new(&config.level));
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(&config.level));
 
     if config.format == "json" {
         tracing_subscriber::fmt()
@@ -43,9 +43,7 @@ fn init_logging(config: &dns_config::config::LoggingConfig) {
             .json()
             .init();
     } else {
-        tracing_subscriber::fmt()
-            .with_env_filter(filter)
-            .init();
+        tracing_subscriber::fmt().with_env_filter(filter).init();
     }
 }
 
@@ -271,10 +269,7 @@ async fn main() {
                 info!("received SIGHUP, reloading zones");
                 match zone_store.reload_all(&zone_dir) {
                     Ok(result) => {
-                        info!(
-                            zones_loaded = result.zones_loaded,
-                            "zone reload complete"
-                        );
+                        info!(zones_loaded = result.zones_loaded, "zone reload complete");
                     }
                     Err(e) => {
                         error!(error = %e, "zone reload failed");

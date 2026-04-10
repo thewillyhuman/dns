@@ -38,11 +38,8 @@ pub fn generate_nsec_chain(
         types.dedup();
 
         let nsec = NSEC::new(next_name, types);
-        let record = Record::from_rdata(
-            (*name).clone(),
-            ttl,
-            RData::DNSSEC(DNSSECRData::NSEC(nsec)),
-        );
+        let record =
+            Record::from_rdata((*name).clone(), ttl, RData::DNSSEC(DNSSECRData::NSEC(nsec)));
         nsec_records.push(record);
     }
 
@@ -59,10 +56,7 @@ pub fn generate_nsec_chain(
 ///
 /// Returns the NSEC record whose owner name is the greatest name
 /// that is less than the queried name.
-pub fn find_covering_nsec<'a>(
-    nsec_records: &'a [Record],
-    qname: &Name,
-) -> Option<&'a Record> {
+pub fn find_covering_nsec<'a>(nsec_records: &'a [Record], qname: &Name) -> Option<&'a Record> {
     // Find NSEC where owner < qname < next_domain_name
     nsec_records.iter().find(|record| {
         let owner = record.name();

@@ -63,16 +63,14 @@ impl DnsMetrics {
         let queries_total = Family::<QueryLabels, Counter>::default();
         registry.register("dns_queries", "Total DNS queries", queries_total.clone());
 
-        let query_duration_seconds =
-            Histogram::new(exponential_buckets(0.0001, 2.0, 16));
+        let query_duration_seconds = Histogram::new(exponential_buckets(0.0001, 2.0, 16));
         registry.register(
             "dns_query_duration_seconds",
             "Query duration in seconds",
             query_duration_seconds.clone(),
         );
 
-        let recursive_upstream_queries_total =
-            Family::<ServerLabels, Counter>::default();
+        let recursive_upstream_queries_total = Family::<ServerLabels, Counter>::default();
         registry.register(
             "dns_recursive_upstream_queries",
             "Upstream recursive queries",
@@ -88,13 +86,21 @@ impl DnsMetrics {
         );
 
         let cache_size = Gauge::default();
-        registry.register("dns_cache_size", "Current cache entries", cache_size.clone());
+        registry.register(
+            "dns_cache_size",
+            "Current cache entries",
+            cache_size.clone(),
+        );
 
         let cache_hits_total = Counter::default();
         registry.register("dns_cache_hits", "Cache hits", cache_hits_total.clone());
 
         let cache_misses_total = Counter::default();
-        registry.register("dns_cache_misses", "Cache misses", cache_misses_total.clone());
+        registry.register(
+            "dns_cache_misses",
+            "Cache misses",
+            cache_misses_total.clone(),
+        );
 
         let cache_evictions_total = Counter::default();
         registry.register(
@@ -118,7 +124,11 @@ impl DnsMetrics {
         );
 
         let rrl_dropped_total = Counter::default();
-        registry.register("dns_rrl_dropped", "RRL dropped responses", rrl_dropped_total.clone());
+        registry.register(
+            "dns_rrl_dropped",
+            "RRL dropped responses",
+            rrl_dropped_total.clone(),
+        );
 
         let rrl_truncated_total = Counter::default();
         registry.register(

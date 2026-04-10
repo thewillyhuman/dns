@@ -32,9 +32,9 @@ impl Zone {
     pub fn add_record(&mut self, record: Record) {
         self.records
             .entry(record.name().clone())
-            .or_insert_with(HashMap::new)
+            .or_default()
             .entry(record.record_type())
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(record);
     }
 
@@ -112,7 +112,7 @@ impl Zone {
                         return None;
                     }
                     // Try *.parent
-                    let wildcard = Name::from_ascii(&format!("*.{}", parent)).ok()?;
+                    let wildcard = Name::from_ascii(format!("*.{}", parent)).ok()?;
                     if let Some(types) = self.records.get(&wildcard) {
                         return Some(types);
                     }

@@ -43,18 +43,18 @@ impl Default for RootHints {
         Self {
             servers: vec![
                 "198.41.0.4:53".parse().unwrap(),     // a.root-servers.net
-                "170.247.170.2:53".parse().unwrap(),   // b.root-servers.net
-                "192.33.4.12:53".parse().unwrap(),     // c.root-servers.net
-                "199.7.91.13:53".parse().unwrap(),     // d.root-servers.net
-                "192.203.230.10:53".parse().unwrap(),  // e.root-servers.net
-                "192.5.5.241:53".parse().unwrap(),     // f.root-servers.net
-                "192.112.36.4:53".parse().unwrap(),    // g.root-servers.net
-                "198.97.190.53:53".parse().unwrap(),   // h.root-servers.net
-                "192.36.148.17:53".parse().unwrap(),   // i.root-servers.net
-                "192.58.128.30:53".parse().unwrap(),   // j.root-servers.net
-                "193.0.14.129:53".parse().unwrap(),    // k.root-servers.net
-                "199.7.83.42:53".parse().unwrap(),     // l.root-servers.net
-                "202.12.27.33:53".parse().unwrap(),    // m.root-servers.net
+                "170.247.170.2:53".parse().unwrap(),  // b.root-servers.net
+                "192.33.4.12:53".parse().unwrap(),    // c.root-servers.net
+                "199.7.91.13:53".parse().unwrap(),    // d.root-servers.net
+                "192.203.230.10:53".parse().unwrap(), // e.root-servers.net
+                "192.5.5.241:53".parse().unwrap(),    // f.root-servers.net
+                "192.112.36.4:53".parse().unwrap(),   // g.root-servers.net
+                "198.97.190.53:53".parse().unwrap(),  // h.root-servers.net
+                "192.36.148.17:53".parse().unwrap(),  // i.root-servers.net
+                "192.58.128.30:53".parse().unwrap(),  // j.root-servers.net
+                "193.0.14.129:53".parse().unwrap(),   // k.root-servers.net
+                "199.7.83.42:53".parse().unwrap(),    // l.root-servers.net
+                "202.12.27.33:53".parse().unwrap(),   // m.root-servers.net
             ],
         }
     }
@@ -80,7 +80,8 @@ impl Resolver {
             cache_config.negative_ttl,
         ));
 
-        let timeout = parse_duration(&recursion_config.timeout).unwrap_or(std::time::Duration::from_secs(2));
+        let timeout =
+            parse_duration(&recursion_config.timeout).unwrap_or(std::time::Duration::from_secs(2));
         let upstream = UpstreamPool::new(UpstreamConfig {
             timeout,
             retries: recursion_config.retries,
@@ -130,8 +131,7 @@ impl Resolver {
                         // Cache the result
                         if !resp.answers.is_empty() {
                             let ttl = resp.answers.first().map(|r| r.ttl()).unwrap_or(300);
-                            self.cache
-                                .insert(qname, qtype, resp.answers.clone(), ttl);
+                            self.cache.insert(qname, qtype, resp.answers.clone(), ttl);
                         } else if resp.response_code == ResponseCode::NXDomain {
                             self.cache
                                 .insert_negative(qname, qtype, ResponseCode::NXDomain);
@@ -147,17 +147,15 @@ impl Resolver {
                 }
                 result
             }
-            DedupAction::Wait(mut rx) => {
-                match rx.recv().await {
-                    Ok(result) => Ok(ResolveResponse {
-                        answers: result.records,
-                        authority: Vec::new(),
-                        additional: Vec::new(),
-                        response_code: result.response_code,
-                    }),
-                    Err(_) => Err(ResolveError::ServFail),
-                }
-            }
+            DedupAction::Wait(mut rx) => match rx.recv().await {
+                Ok(result) => Ok(ResolveResponse {
+                    answers: result.records,
+                    authority: Vec::new(),
+                    additional: Vec::new(),
+                    response_code: result.response_code,
+                }),
+                Err(_) => Err(ResolveError::ServFail),
+            },
         }
     }
 
@@ -167,47 +165,45 @@ impl Resolver {
         qname: &'a Name,
         qtype: RecordType,
         depth: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<ResolveResponse, ResolveError>> + Send + 'a>> {
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = Result<ResolveResponse, ResolveError>> + Send + 'a>,
+    > {
         Box::pin(async move {
-        if depth >= self.max_depth {
-            warn!(qname = %qname, depth = depth, "max recursion depth exceeded");
-            return Err(ResolveError::MaxDepthExceeded);
-        }
+            if depth >= self.max_depth {
+                warn!(qname = %qname, depth = depth, "max recursion depth exceeded");
+                return Err(ResolveError::MaxDepthExceeded);
+            }
 
-        // Start from root hints or cached delegation
-        let nameservers = self.root_hints.servers.clone();
-        let zone_cut = Name::root();
+            // Start from root hints or cached delegation
+            let nameservers = self.root_hints.servers.clone();
+            let zone_cut = Name::root();
 
-        // Try to find a closer delegation in cache
-        // Walk from qname toward root, looking for cached NS
-        // (simplified — a full implementation would check NS record cache)
+            // Try to find a closer delegation in cache
+            // Walk from qname toward root, looking for cached NS
+            // (simplified — a full implementation would check NS record cache)
 
-        let actual_qname = if self.qname_minimization {
-            qname_min::minimized_qname(qname, &zone_cut)
-        } else {
-            qname.clone()
-        };
-
-        // Query each nameserver until we get an answer or referral
-        for ns_addr in &nameservers {
-            let response = match self
-                .upstream
-                .query(*ns_addr, &actual_qname, qtype)
-                .await
-            {
-                Ok(resp) => resp,
-                Err(e) => {
-                    debug!(server = %ns_addr, error = %e, "upstream query failed, trying next");
-                    continue;
-                }
+            let actual_qname = if self.qname_minimization {
+                qname_min::minimized_qname(qname, &zone_cut)
+            } else {
+                qname.clone()
             };
 
-            return self
-                .process_response(response, qname, qtype, &zone_cut, depth)
-                .await;
-        }
+            // Query each nameserver until we get an answer or referral
+            for ns_addr in &nameservers {
+                let response = match self.upstream.query(*ns_addr, &actual_qname, qtype).await {
+                    Ok(resp) => resp,
+                    Err(e) => {
+                        debug!(server = %ns_addr, error = %e, "upstream query failed, trying next");
+                        continue;
+                    }
+                };
 
-        Err(ResolveError::NoNameservers(zone_cut))
+                return self
+                    .process_response(response, qname, qtype, &zone_cut, depth)
+                    .await;
+            }
+
+            Err(ResolveError::NoNameservers(zone_cut))
         }) // end Box::pin
     }
 
@@ -219,163 +215,164 @@ impl Resolver {
         qtype: RecordType,
         zone_cut: &'a Name,
         depth: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<ResolveResponse, ResolveError>> + Send + 'a>> {
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = Result<ResolveResponse, ResolveError>> + Send + 'a>,
+    > {
         Box::pin(async move {
-        let rcode = response.response_code();
+            let rcode = response.response_code();
 
-        // Check for answer
-        if !response.answers().is_empty() {
-            let answers = response.answers().to_vec();
+            // Check for answer
+            if !response.answers().is_empty() {
+                let answers = response.answers().to_vec();
 
-            // Check for CNAME and chase if needed
-            let cname_target: Option<Name> = if qtype != RecordType::CNAME {
-                answers
-                    .iter()
-                    .find(|r| r.record_type() == RecordType::CNAME)
-                    .and_then(|r| {
-                        if let RData::CNAME(cname) = r.data() {
-                            Some(cname.0.clone())
-                        } else {
-                            None
-                        }
-                    })
-            } else {
-                None
-            };
+                // Check for CNAME and chase if needed
+                let cname_target: Option<Name> = if qtype != RecordType::CNAME {
+                    answers
+                        .iter()
+                        .find(|r| r.record_type() == RecordType::CNAME)
+                        .and_then(|r| {
+                            if let RData::CNAME(cname) = r.data() {
+                                Some(cname.0.clone())
+                            } else {
+                                None
+                            }
+                        })
+                } else {
+                    None
+                };
 
-            if let Some(target) = cname_target {
-                // Check if the answer already contains the final records
-                let has_final = answers.iter().any(|r| r.record_type() == qtype);
-                if has_final {
+                if let Some(target) = cname_target {
+                    // Check if the answer already contains the final records
+                    let has_final = answers.iter().any(|r| r.record_type() == qtype);
+                    if has_final {
+                        return Ok(ResolveResponse {
+                            answers,
+                            authority: response.name_servers().to_vec(),
+                            additional: response.additionals().to_vec(),
+                            response_code: ResponseCode::NoError,
+                        });
+                    }
+                    // Chase the CNAME
+                    let mut cname_answers = answers;
+                    let chased = self.iterative_resolve(&target, qtype, depth + 1).await?;
+                    cname_answers.extend(chased.answers);
                     return Ok(ResolveResponse {
-                        answers,
-                        authority: response.name_servers().to_vec(),
-                        additional: response.additionals().to_vec(),
-                        response_code: ResponseCode::NoError,
+                        answers: cname_answers,
+                        authority: chased.authority,
+                        additional: chased.additional,
+                        response_code: chased.response_code,
                     });
                 }
-                // Chase the CNAME
-                let mut cname_answers = answers;
-                let chased = self.iterative_resolve(&target, qtype, depth + 1).await?;
-                cname_answers.extend(chased.answers);
+
                 return Ok(ResolveResponse {
-                    answers: cname_answers,
-                    authority: chased.authority,
-                    additional: chased.additional,
-                    response_code: chased.response_code,
+                    answers,
+                    authority: response.name_servers().to_vec(),
+                    additional: response.additionals().to_vec(),
+                    response_code: rcode,
                 });
             }
 
-            return Ok(ResolveResponse {
-                answers,
-                authority: response.name_servers().to_vec(),
-                additional: response.additionals().to_vec(),
-                response_code: rcode,
-            });
-        }
+            // Check for referral (NS records in authority section, no answers)
+            if !response.name_servers().is_empty()
+                && rcode == ResponseCode::NoError
+                && response.answers().is_empty()
+            {
+                let ns_records = response.name_servers();
+                let additionals = response.additionals();
 
-        // Check for referral (NS records in authority section, no answers)
-        if !response.name_servers().is_empty()
-            && rcode == ResponseCode::NoError
-            && response.answers().is_empty()
-        {
-            let ns_records = response.name_servers();
-            let additionals = response.additionals();
+                // Extract NS targets and their glue records
+                let mut referred_servers = Vec::new();
+                let mut new_zone_cut = zone_cut.clone();
 
-            // Extract NS targets and their glue records
-            let mut referred_servers = Vec::new();
-            let mut new_zone_cut = zone_cut.clone();
-
-            for ns in ns_records {
-                if ns.record_type() == RecordType::NS {
-                    if let RData::NS(ns_name) = ns.data() {
-                        // Update zone cut
-                        new_zone_cut = ns.name().clone();
-
-                        // Look for glue A/AAAA records
-                        for additional in additionals {
-                            if additional.name() == &ns_name.0 {
-                                match additional.data() {
-                                    RData::A(a) => {
-                                        referred_servers.push(SocketAddr::new(
-                                            std::net::IpAddr::V4(a.0),
-                                            53,
-                                        ));
-                                    }
-                                    RData::AAAA(aaaa) => {
-                                        referred_servers.push(SocketAddr::new(
-                                            std::net::IpAddr::V6(aaaa.0),
-                                            53,
-                                        ));
-                                    }
-                                    _ => {}
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if referred_servers.is_empty() {
-                // No glue — need to resolve NS names first
-                // For simplicity, try first NS name
                 for ns in ns_records {
                     if ns.record_type() == RecordType::NS {
                         if let RData::NS(ns_name) = ns.data() {
-                            if let Ok(ns_resp) = self.iterative_resolve(&ns_name.0, RecordType::A, depth + 1).await {
-                                for record in &ns_resp.answers {
-                                    if let RData::A(a) = record.data() {
-                                        referred_servers.push(SocketAddr::new(
-                                            std::net::IpAddr::V4(a.0),
-                                            53,
-                                        ));
+                            // Update zone cut
+                            new_zone_cut = ns.name().clone();
+
+                            // Look for glue A/AAAA records
+                            for additional in additionals {
+                                if additional.name() == &ns_name.0 {
+                                    match additional.data() {
+                                        RData::A(a) => {
+                                            referred_servers.push(SocketAddr::new(
+                                                std::net::IpAddr::V4(a.0),
+                                                53,
+                                            ));
+                                        }
+                                        RData::AAAA(aaaa) => {
+                                            referred_servers.push(SocketAddr::new(
+                                                std::net::IpAddr::V6(aaaa.0),
+                                                53,
+                                            ));
+                                        }
+                                        _ => {}
                                     }
-                                }
-                                if !referred_servers.is_empty() {
-                                    break;
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            if referred_servers.is_empty() {
+                if referred_servers.is_empty() {
+                    // No glue — need to resolve NS names first
+                    // For simplicity, try first NS name
+                    for ns in ns_records {
+                        if ns.record_type() == RecordType::NS {
+                            if let RData::NS(ns_name) = ns.data() {
+                                if let Ok(ns_resp) = self
+                                    .iterative_resolve(&ns_name.0, RecordType::A, depth + 1)
+                                    .await
+                                {
+                                    for record in &ns_resp.answers {
+                                        if let RData::A(a) = record.data() {
+                                            referred_servers.push(SocketAddr::new(
+                                                std::net::IpAddr::V4(a.0),
+                                                53,
+                                            ));
+                                        }
+                                    }
+                                    if !referred_servers.is_empty() {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if referred_servers.is_empty() {
+                    return Err(ResolveError::NoNameservers(new_zone_cut));
+                }
+
+                // Follow referral
+                let actual_qname = if self.qname_minimization {
+                    qname_min::minimized_qname(qname, &new_zone_cut)
+                } else {
+                    qname.clone()
+                };
+
+                for ns_addr in &referred_servers {
+                    let response = match self.upstream.query(*ns_addr, &actual_qname, qtype).await {
+                        Ok(resp) => resp,
+                        Err(_) => continue,
+                    };
+
+                    return self
+                        .process_response(response, qname, qtype, &new_zone_cut, depth + 1)
+                        .await;
+                }
+
                 return Err(ResolveError::NoNameservers(new_zone_cut));
             }
 
-            // Follow referral
-            let actual_qname = if self.qname_minimization {
-                qname_min::minimized_qname(qname, &new_zone_cut)
-            } else {
-                qname.clone()
-            };
-
-            for ns_addr in &referred_servers {
-                let response = match self
-                    .upstream
-                    .query(*ns_addr, &actual_qname, qtype)
-                    .await
-                {
-                    Ok(resp) => resp,
-                    Err(_) => continue,
-                };
-
-                return self
-                    .process_response(response, qname, qtype, &new_zone_cut, depth + 1)
-                    .await;
-            }
-
-            return Err(ResolveError::NoNameservers(new_zone_cut));
-        }
-
-        // NXDOMAIN or other error
-        Ok(ResolveResponse {
-            answers: Vec::new(),
-            authority: response.name_servers().to_vec(),
-            additional: Vec::new(),
-            response_code: rcode,
-        })
+            // NXDOMAIN or other error
+            Ok(ResolveResponse {
+                answers: Vec::new(),
+                authority: response.name_servers().to_vec(),
+                additional: Vec::new(),
+                response_code: rcode,
+            })
         }) // end Box::pin
     }
 
@@ -458,9 +455,18 @@ mod tests {
 
     #[test]
     fn test_parse_duration() {
-        assert_eq!(parse_duration("2s"), Some(std::time::Duration::from_secs(2)));
-        assert_eq!(parse_duration("500ms"), Some(std::time::Duration::from_millis(500)));
-        assert_eq!(parse_duration("10"), Some(std::time::Duration::from_secs(10)));
+        assert_eq!(
+            parse_duration("2s"),
+            Some(std::time::Duration::from_secs(2))
+        );
+        assert_eq!(
+            parse_duration("500ms"),
+            Some(std::time::Duration::from_millis(500))
+        );
+        assert_eq!(
+            parse_duration("10"),
+            Some(std::time::Duration::from_secs(10))
+        );
     }
 
     #[test]

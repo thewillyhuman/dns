@@ -40,7 +40,10 @@ fn test_zone_store_query_consistency() {
 
     // Initial state
     assert!(store.is_authoritative_for(&Name::from_ascii("www.example.com.").unwrap()));
-    let resp = store.lookup(&Name::from_ascii("www.example.com.").unwrap(), RecordType::A);
+    let resp = store.lookup(
+        &Name::from_ascii("www.example.com.").unwrap(),
+        RecordType::A,
+    );
     assert!(resp.is_some());
 
     // Zone names should include example.com

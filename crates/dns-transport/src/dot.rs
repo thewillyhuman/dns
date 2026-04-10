@@ -148,8 +148,8 @@ pub fn load_tls_config(
     let cert_file = std::fs::File::open(cert_path)?;
     let key_file = std::fs::File::open(key_path)?;
 
-    let certs: Vec<_> = rustls_pemfile::certs(&mut std::io::BufReader::new(cert_file))
-        .collect::<Result<_, _>>()?;
+    let certs: Vec<_> =
+        rustls_pemfile::certs(&mut std::io::BufReader::new(cert_file)).collect::<Result<_, _>>()?;
     let key = rustls_pemfile::private_key(&mut std::io::BufReader::new(key_file))?
         .ok_or("no private key found in PEM file")?;
 

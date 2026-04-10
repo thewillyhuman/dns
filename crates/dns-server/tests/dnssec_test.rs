@@ -11,11 +11,7 @@ use std::net::Ipv4Addr;
 use std::time::Duration;
 
 fn make_a_record(name: &str, ip: Ipv4Addr) -> Record {
-    Record::from_rdata(
-        Name::from_ascii(name).unwrap(),
-        300,
-        RData::A(ip.into()),
-    )
+    Record::from_rdata(Name::from_ascii(name).unwrap(), 300, RData::A(ip.into()))
 }
 
 fn build_zone_records() -> HashMap<Name, HashMap<RecordType, Vec<Record>>> {
@@ -74,7 +70,7 @@ fn test_sign_and_verify_zone_ecdsa() {
                 *rtype,
                 rrset,
                 &rrsig_records,
-                &[zsk.dnskey.clone()],
+                std::slice::from_ref(&zsk.dnskey),
             );
             assert_eq!(
                 result,
@@ -90,20 +86,8 @@ fn test_sign_and_verify_zone_ecdsa() {
 #[test]
 fn test_sign_and_verify_zone_ed25519() {
     let zone = Name::from_ascii("example.com.").unwrap();
-    let zsk = generate_key(
-        Algorithm::ED25519,
-        &zone,
-        false,
-        Duration::from_secs(86400),
-    )
-    .unwrap();
-    let ksk = generate_key(
-        Algorithm::ED25519,
-        &zone,
-        true,
-        Duration::from_secs(86400),
-    )
-    .unwrap();
+    let zsk = generate_key(Algorithm::ED25519, &zone, false, Duration::from_secs(86400)).unwrap();
+    let ksk = generate_key(Algorithm::ED25519, &zone, true, Duration::from_secs(86400)).unwrap();
 
     let records = build_zone_records();
     let rrsigs = sign_zone(&records, &zone, &zsk, &ksk).unwrap();
@@ -119,7 +103,7 @@ fn test_sign_and_verify_zone_ed25519() {
         RecordType::A,
         rrset,
         &rrsig_records,
-        &[zsk.dnskey.clone()],
+        std::slice::from_ref(&zsk.dnskey),
     );
     assert_eq!(result, ValidationResult::Secure);
 }
@@ -155,7 +139,7 @@ fn test_tampered_record_fails_validation() {
         RecordType::A,
         &tampered,
         &rrsig_records,
-        &[zsk.dnskey.clone()],
+        std::slice::from_ref(&zsk.dnskey),
     );
     assert!(
         matches!(result, ValidationResult::Bogus(_)),
@@ -190,9 +174,6 @@ fn test_nsec_chain_generation() {
 
     // All NSEC records should be at the right names
     for (i, name_str) in names.iter().enumerate() {
-        assert_eq!(
-            nsec_chain[i].name(),
-            &Name::from_ascii(name_str).unwrap()
-        );
+        assert_eq!(nsec_chain[i].name(), &Name::from_ascii(name_str).unwrap());
     }
 }

@@ -100,14 +100,19 @@ async fn process_doh_query<H: QueryHandler>(
         .and_then(|v| v.to_str().ok())
         .unwrap_or("application/dns-message");
 
-    match state.handler.handle_query(wire_query, state.default_src).await {
+    match state
+        .handler
+        .handle_query(wire_query, state.default_src)
+        .await
+    {
         Some(response) => {
             if accept.contains("application/dns-json") {
                 // JSON response format
                 match wire_to_json(&response) {
                     Ok(json) => {
                         let mut resp_headers = HeaderMap::new();
-                        resp_headers.insert("content-type", "application/dns-json".parse().unwrap());
+                        resp_headers
+                            .insert("content-type", "application/dns-json".parse().unwrap());
                         Ok((StatusCode::OK, resp_headers, json.into_bytes()))
                     }
                     Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
@@ -115,10 +120,7 @@ async fn process_doh_query<H: QueryHandler>(
             } else {
                 // Wire format response (default)
                 let mut resp_headers = HeaderMap::new();
-                resp_headers.insert(
-                    "content-type",
-                    "application/dns-message".parse().unwrap(),
-                );
+                resp_headers.insert("content-type", "application/dns-message".parse().unwrap());
                 Ok((StatusCode::OK, resp_headers, response))
             }
         }

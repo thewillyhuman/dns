@@ -98,10 +98,8 @@ impl dns_transport::QueryHandler for Router {
                 if let Some(resolver) = &resolver {
                     match resolver.resolve(qname, qtype).await {
                         Ok(resolve_resp) => {
-                            let resp = response::build_recursive_response(
-                                &query,
-                                resolve_resp.answers,
-                            );
+                            let resp =
+                                response::build_recursive_response(&query, resolve_resp.answers);
                             resp.to_vec().ok()
                         }
                         Err(e) => {

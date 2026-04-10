@@ -52,20 +52,15 @@ pub fn generate_key(
 
     let pkcs8_bytes = match algorithm {
         Algorithm::ECDSAP256SHA256 => {
-            EcdsaKeyPair::generate_pkcs8(
-                &ECDSA_P256_SHA256_FIXED_SIGNING,
-                &rng,
-            )
-            .map_err(|e| KeyError::Generation(e.to_string()))?
-            .as_ref()
-            .to_vec()
-        }
-        Algorithm::ED25519 => {
-            Ed25519KeyPair::generate_pkcs8(&rng)
+            EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_FIXED_SIGNING, &rng)
                 .map_err(|e| KeyError::Generation(e.to_string()))?
                 .as_ref()
                 .to_vec()
         }
+        Algorithm::ED25519 => Ed25519KeyPair::generate_pkcs8(&rng)
+            .map_err(|e| KeyError::Generation(e.to_string()))?
+            .as_ref()
+            .to_vec(),
         _ => return Err(KeyError::UnsupportedAlgorithm(format!("{:?}", algorithm))),
     };
 
@@ -92,8 +87,8 @@ fn build_key_pair(
     sig_duration: Duration,
 ) -> Result<DnssecKeyPair, KeyError> {
     let der = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(pkcs8_bytes.to_vec()));
-    let signing_key = signing_key_from_der(&der, algorithm)
-        .map_err(|e| KeyError::Generation(e.to_string()))?;
+    let signing_key =
+        signing_key_from_der(&der, algorithm).map_err(|e| KeyError::Generation(e.to_string()))?;
 
     let public_key_buf = signing_key
         .to_public_key()
@@ -174,19 +169,17 @@ mod tests {
     #[test]
     fn test_generate_ed25519() {
         let zone = Name::from_ascii("example.com.").unwrap();
-        let key = generate_key(
-            Algorithm::ED25519,
-            &zone,
-            false,
-            Duration::from_secs(86400),
-        )
-        .unwrap();
+        let key =
+            generate_key(Algorithm::ED25519, &zone, false, Duration::from_secs(86400)).unwrap();
         assert_eq!(key.algorithm, Algorithm::ED25519);
     }
 
     #[test]
     fn test_parse_algorithm() {
-        assert_eq!(parse_algorithm("ECDSAP256SHA256").unwrap(), Algorithm::ECDSAP256SHA256);
+        assert_eq!(
+            parse_algorithm("ECDSAP256SHA256").unwrap(),
+            Algorithm::ECDSAP256SHA256
+        );
         assert_eq!(parse_algorithm("ED25519").unwrap(), Algorithm::ED25519);
         assert_eq!(parse_algorithm("13").unwrap(), Algorithm::ECDSAP256SHA256);
         assert!(parse_algorithm("UNKNOWN").is_err());
