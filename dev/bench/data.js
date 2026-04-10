@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1775831902762,
+  "lastUpdate": 1775832460820,
   "repoUrl": "https://github.com/thewillyhuman/dns",
   "entries": {
     "DNS Server Benchmarks": [
@@ -833,6 +833,312 @@ window.BENCHMARK_DATA = {
             "name": "reload_swap/parse_and_swap/100000",
             "value": 5537516,
             "range": "± 874776",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "guillermo.facundo.colunga@cern.ch",
+            "name": "Guillermo Facundo Colunga",
+            "username": "thewillyhuman"
+          },
+          "committer": {
+            "email": "guillermo.facundo.colunga@cern.ch",
+            "name": "Guillermo Facundo Colunga",
+            "username": "thewillyhuman"
+          },
+          "distinct": true,
+          "id": "cfa269dfabf531fde86b1adc7231890d9da4f436",
+          "message": "Update README performance section with scaling benchmark results\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+          "timestamp": "2026-04-10T16:35:07+02:00",
+          "tree_id": "9c1d0222add02da94722f15649e1ecd5eae41b90",
+          "url": "https://github.com/thewillyhuman/dns/commit/cfa269dfabf531fde86b1adc7231890d9da4f436"
+        },
+        "date": 1775832459993,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "cache_insert",
+            "value": 1645,
+            "range": "± 97",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_hit",
+            "value": 559,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_miss",
+            "value": 289,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "authoritative_a_lookup",
+            "value": 5334,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "nxdomain_lookup",
+            "value": 6080,
+            "range": "± 107",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "wildcard_lookup",
+            "value": 9434,
+            "range": "± 203",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dns_message_parse",
+            "value": 211,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dns_message_serialize",
+            "value": 281,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "dns_name_parse",
+            "value": 252,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_size/exact_hit/100",
+            "value": 6332,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_size/nxdomain/100",
+            "value": 7627,
+            "range": "± 36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_size/exact_hit/100000",
+            "value": 6618,
+            "range": "± 33",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_size/nxdomain/100000",
+            "value": 7494,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_size/exact_hit/1000000",
+            "value": 6558,
+            "range": "± 22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_size/nxdomain/1000000",
+            "value": 7368,
+            "range": "± 53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/hit_last_zone/1",
+            "value": 6328,
+            "range": "± 55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/miss_no_zone/1",
+            "value": 2112,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/hit_last_zone/1000",
+            "value": 6520,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/miss_no_zone/1000",
+            "value": 2060,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/hit_last_zone/10000",
+            "value": 6530,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/miss_no_zone/10000",
+            "value": 2064,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/hit_last_zone/100000",
+            "value": 6915,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "lookup_by_zone_count/miss_no_zone/100000",
+            "value": 2111,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_by_population/hit/100",
+            "value": 662,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_by_population/miss/100",
+            "value": 310,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_by_population/hit/100000",
+            "value": 901,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_by_population/miss/100000",
+            "value": 464,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_by_population/hit/1000000",
+            "value": 702,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_get_by_population/miss/1000000",
+            "value": 316,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_insert_by_population/insert/100",
+            "value": 1995,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_insert_by_population/insert/100000",
+            "value": 1926,
+            "range": "± 68",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "cache_insert_by_population/insert/1000000",
+            "value": 2003,
+            "range": "± 69",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_by_zone_size/parse_and_build/100",
+            "value": 396217,
+            "range": "± 841",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_by_zone_size/parse_and_build/100000",
+            "value": 847693538,
+            "range": "± 1759828",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_by_zone_size/parse_and_build/1000000",
+            "value": 10125783650,
+            "range": "± 43726108",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_by_zone_count/parse_and_build_all/1",
+            "value": 76636,
+            "range": "± 71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_by_zone_count/parse_and_build_all/1000",
+            "value": 83078602,
+            "range": "± 1706712",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_by_zone_count/parse_and_build_all/10000",
+            "value": 865547951,
+            "range": "± 8545047",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_by_zone_count/parse_and_build_all/100000",
+            "value": 8828976425,
+            "range": "± 27817751",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/swap_only/1",
+            "value": 3924,
+            "range": "± 39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/parse_and_swap/1",
+            "value": 75924,
+            "range": "± 183",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/swap_only/1000",
+            "value": 20887,
+            "range": "± 846",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/parse_and_swap/1000",
+            "value": 94810,
+            "range": "± 214",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/swap_only/10000",
+            "value": 193151,
+            "range": "± 928",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/parse_and_swap/10000",
+            "value": 265441,
+            "range": "± 786",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/swap_only/100000",
+            "value": 3076871,
+            "range": "± 47965",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "reload_swap/parse_and_swap/100000",
+            "value": 3282441,
+            "range": "± 58277",
             "unit": "ns/iter"
           }
         ]
