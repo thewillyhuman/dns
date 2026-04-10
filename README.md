@@ -76,6 +76,7 @@ cargo clippy --workspace --all-targets
 cargo bench -p dns-server --bench parsing
 cargo bench -p dns-server --bench lookup
 cargo bench -p dns-server --bench cache
+cargo bench -p dns-server --bench scaling    # zone size, zone count, cache population, reload
 
 # Run throughput benchmarks
 cargo bench -p dns-server --bench throughput

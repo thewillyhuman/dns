@@ -53,7 +53,7 @@ jobs:
 
       # Run criterion benchmarks and save output
       - name: Run criterion benchmarks
-        run: cargo bench -p dns-server --bench parsing --bench lookup --bench cache -- --output-format bencher | tee bench-output.txt
+        run: cargo bench -p dns-server --bench parsing --bench lookup --bench cache --bench scaling -- --output-format bencher | tee bench-output.txt
 
       # Run throughput benchmarks (custom harness, non-criterion)
       - name: Run throughput benchmarks
@@ -101,7 +101,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: Run criterion benchmarks
-        run: cargo bench -p dns-server --bench parsing --bench lookup --bench cache -- --output-format bencher | tee bench-output.txt
+        run: cargo bench -p dns-server --bench parsing --bench lookup --bench cache --bench scaling -- --output-format bencher | tee bench-output.txt
 
       - name: Store benchmark baseline
         uses: benchmark-action/github-action-benchmark@v1

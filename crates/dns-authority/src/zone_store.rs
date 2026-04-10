@@ -92,6 +92,16 @@ impl ZoneStore {
         Ok(())
     }
 
+    /// Swap in a pre-parsed zone, replacing any existing zone with the same origin.
+    pub fn swap_zone(&self, zone: Zone) {
+        let origin = zone.origin.clone();
+        let guard = self.inner.load();
+        let mut new_zones = guard.zones.clone();
+        new_zones.insert(origin, Arc::new(zone));
+        self.inner
+            .store(Arc::new(ZoneStoreInner { zones: new_zones }));
+    }
+
     /// Get the list of all zone names.
     pub fn zone_names(&self) -> Vec<Name> {
         let guard = self.inner.load();

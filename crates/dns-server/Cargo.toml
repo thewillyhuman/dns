@@ -51,3 +51,7 @@ harness = false
 [[bench]]
 name = "throughput_mixed"
 harness = false
+
+[[bench]]
+name = "scaling"
+harness = false
